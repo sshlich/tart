@@ -1,0 +1,61 @@
+---
+slug: dnb-1
+title: "Dnb 1"
+tempo: 170
+mood: "melodic, energetic dnb"
+tags: [dnb, melodic, energetic]
+summary: |
+  Melodic DnB sketch with layered drums, supersaw bass in F minor, a lead arp, and
+  chopped vox. Includes break variants and arrangement-focused renders for rapid assembly.
+resources:
+  - COMPOSING.md
+---
+// Quarter-note cycle math for classic DnB pacing
+setcpm(170/4)
+
+// PARTS
+const drums = stack(
+  s("bd:1").beat("0,7?,10", 16),
+  s("sd:2").beat("4,12", 16),
+  s("hh:4!8").gain(0.6),
+  s("oh:2").beat("2,6,10,14", 16).gain(0.3)
+)
+  .orbit(2)
+
+const breaks = stack(
+  s("amen:3 amen:5").fast(2).gain(0.45).lpf(2400).hpf(120),
+  s("ride:2*8").gain(0.15).hpf(700)
+)
+  .orbit(2)
+
+const bass = s("supersaw!8")
+  .note("<c# f d# [d# a#2]>/2")
+  .sub(12)
+  .lpf(1100)
+  .lpenv("2")
+  .gain(0.8)
+  .orbit(3)
+
+const lead = n("<0 7 5 4>/2").scale("F:minor")
+  .sound("sawtooth")
+  .adsr("0.05:0.25:0.5:0.4")
+  .lpf(1800)
+  .room(0.25)
+  .gain(0.5)
+  .orbit(4)
+
+const vox = s("jt:3")
+  .scrub(berlin.fast(2).seg(8))
+  .rib(13, 2)
+  .delay(0.6).delaytime(rand)
+  .room(1).roomsize(0).dry(0)
+  .gain(0.6)
+  .orbit(5)
+
+// ARRANGEMENT (default stack)
+stack(
+  drums,
+  bass,
+  lead,
+  vox
+)
