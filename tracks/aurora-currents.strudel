@@ -1,0 +1,147 @@
+---
+slug: aurora-currents
+title: "Aurora Currents"
+tempo: 68
+mood: "evolving, luminous ambient"
+tags: [ambient, cinematic, layered, evolving]
+summary: |
+  A six-part ambient journey drifts from mist-soaked drones into pulsing chimes, then rises through luminous lifts before dissolving into strings and afterglow noise.
+  Each phase overlaps the next, adding and releasing layers so the energy arcs slowly without abrupt resets.
+resources:
+  - STRUDEL-README.md#Composition-Patterns
+  - STRUDEL-LIBRARY.md#Synth-Engines
+---
+setcpm(68)
+
+const mistIntro = stack(
+  sound("brown").gain(0.18).slow(8).lpf(520).hpf(60),
+  sound("pink").gain(0.1).slow(5).lpf(680).hpf(120),
+  n("<0 [2 4] 7 ~>").scale("D:lydian")
+    .sound("sine")
+    .slow(7)
+    .adsr("0.6:1.6:0.6:3.0")
+    .lpf(1400)
+    .hpf(160)
+    .gain(0.34)
+    .pan(sine.range(0.25, 0.75).slow(18))
+    .room(0.82),
+  note("d3 <a3 d4> e4").sound("gm_voice_oohs")
+    .slow(6)
+    .adsr("0.5:2.0:0.7:3.4")
+    .room(0.92)
+    .pan(0.42)
+)
+
+const shimmerBridge = stack(
+  mistIntro.gain(0.45),
+  sound("crackle").gain(0.16).slow(3).hpf(300),
+  n("<0 [2 5]>").scale("D:lydian")
+    .sound("triangle")
+    .slow(5)
+    .adsr("0.2:1.2:0.5:2.2")
+    .gain(0.28)
+    .pan(sine.range(0.35, 0.65).slow(12))
+    .lpf(1600)
+    .hpf(150)
+    .room(0.75),
+  sound("perc:3 perc:7").bank("ViscoSpaceDrum")
+    .slow(8)
+    .gain(0.12)
+    .pan("0.3 0.7")
+)
+
+const tidalPulse = stack(
+  n("<[0 7] 2 4 [9 11]>").scale("D:lydian")
+    .sound("triangle")
+    .slow(3)
+    .adsr("0.15:0.6:0.5:1.6")
+    .gain(0.33)
+    .delay("0.45:0.32")
+    .pan(sine.range(0.32, 0.68).slow(10)),
+  note("d4 a4 <d5 e5> f#5").sound("gm_tubular_bells")
+    .slow(4)
+    .gain(0.24)
+    .room(0.78)
+    .delay("0.55:0.28")
+    .pan("0.4 0.6"),
+  note("<a3 d4> e4 f#4").sound("gm_string_ensemble_1")
+    .slow(5)
+    .adsr("0.4:1.4:0.7:2.4")
+    .gain(0.26)
+    .room(0.88)
+    .pan(0.5),
+  sound("hh*12").bank("RolandTR707")
+    .gain(sine.range(0.05, 0.14).slow(9))
+    .degradeBy(0.55)
+    .lpf(1000)
+    .hpf(180)
+    .pan(0.55),
+  sound("pink").gain(0.12).slow(4).lpf(780).hpf(160)
+)
+
+const tideLift = stack(
+  tidalPulse.gain(0.6),
+  n("<0 2 4 5 7>").scale("D:mixolydian")
+    .sound("sine")
+    .slow(2)
+    .adsr("0.18:0.8:0.45:1.8")
+    .gain(0.26)
+    .lpf(1300)
+    .hpf(150)
+    .pan(sine.range(0.3, 0.7).slow(7))
+    .room(0.8),
+  sound("gm_voice_oohs").note("<a4 d5 f#5>")
+    .slow(6)
+    .gain(0.22)
+    .room(0.92)
+    .delay("0.62:0.38")
+    .pan("0.35 0.65"),
+  sound("white").gain(0.08).slow(3).hpf(400)
+)
+
+const dusk = stack(
+  n("<0 -2 -5>").scale("D:lydian")
+    .sound("triangle")
+    .slow(9)
+    .adsr("0.7:2.6:0.7:3.8")
+    .gain(0.36)
+    .lpf("240 520")
+    .hpf(110)
+    .pan(0.52),
+  note("d2 <a2 d3> f3").sound("gm_string_ensemble_1")
+    .slow(7)
+    .adsr("0.7:2.4:0.8:4.2")
+    .gain(0.34)
+    .room(0.9)
+    .pan(0.4),
+  note("<a4 d5> ~ <f#4 e5>").sound("gm_voice_oohs")
+    .slow(6)
+    .gain(0.2)
+    .room(0.95)
+    .delay("0.68:0.42")
+    .pan(sine.range(0.3, 0.7).slow(11)),
+  sound("brown").gain(0.14).slow(5).lpf(420).hpf(70)
+)
+
+const afterglow = stack(
+  dusk.gain(0.55),
+  sound("pink").gain(0.09).slow(3).hpf(260),
+  sound("crackle").gain(0.14).slow(4).hpf(320),
+  n("<0 7>").scale("D:lydian")
+    .sound("triangle")
+    .slow(10)
+    .adsr("1.0:3.0:0.6:5.0")
+    .gain(0.22)
+    .lpf(1100)
+    .hpf(140)
+    .pan(0.5)
+)
+
+cat(
+  mistIntro.slow(3),
+  shimmerBridge.slow(3),
+  tidalPulse.slow(3),
+  tideLift.slow(3),
+  dusk.slow(3),
+  afterglow.slow(4)
+)

@@ -1,0 +1,25 @@
+---
+slug: midnight-lanterns
+title: "Midnight Lanterns"
+tempo: 92
+mood: "nocturnal, reflective"
+tags: [downtempo, melodic]
+summary: |
+  Laid-back groove with 909 drums, warm saw bass, and randomized glockenspiel motifs.
+resources:
+  - STRUDEL-LIBRARY.md#Drum-Machines--Percussion
+  - STRUDEL-README.md#Pattern-Transformations
+---
+setcpm(92)
+const chords = chord("<Fm7 Dbmaj7 Dbmaj7 Eb9>/4").dict('ireal')
+stack(
+  sound("bd [~ sd]*2").bank("RolandTR909").gain(0.85),
+  sound("hh*16").bank("RolandTR707").gain("[0.35 1]*4"),
+  n("<0 [2 4] 5>").set(chords)
+    .sound("gm_acoustic_bass")
+    .lpf("400 1200").adsr("0.03:0.1:0.6:0.2"),
+  note("<c4 eb4 g4 bb4>").set(chords)
+    .sound("gm_glockenspiel")
+    .slow(2)
+    .sometimes(x=>x.degradeBy(0.4))
+)

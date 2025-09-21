@@ -1,0 +1,59 @@
+---
+slug: auroral-haze
+title: "Auroral Haze"
+tempo: 36
+mood: "soothing, nocturnal ambient"
+tags: [ambient, cinematic, pads]
+summary: |
+  Evolving low-tempo pads, airy vocal swells, and textural noise layers that drift without percussion.
+resources:
+  - STRUDEL-README.md#Composition-Patterns
+  - STRUDEL-LIBRARY.md#Synth-Stack-Template
+---
+setcpm(36)
+const padChords = chord("<Cmaj7(add13) Bbmaj7(add9) Ebmaj7(add11) Gm9>/8").dict("droppad")
+
+stack(
+  note("<c1 g1@2>").sound("sine")
+    .slow(8)
+    .gain(0.28)
+    .room(0.7)
+    .delay("0.7:0.4"),
+
+  n("<0 [4 7] 11 [14 16]> ")
+    .set(padChords)
+    .sound("sawtooth:16")
+    .slow(4)
+    .adsr("4:6:0.68:5")
+    .lpf(sine.range(300, 1500).slow(12))
+    .gain(0.35),
+
+  n("<0 2 5 7>")
+    .set(padChords)
+    .sound("triangle")
+    .outside(2, x => x.slow(2))
+    .pan(perlin.range(0.1, 0.9).slow(10))
+    .gain(0.22),
+
+  sound("pink")
+    .slow(32)
+    .gain(0.1)
+    .lpf(1200)
+    .room(0.6),
+
+  n("<9 12 16 ~>")
+    .set(padChords)
+    .sound("gm_voice_oohs, gm_voice_aahs")
+    .slow(6)
+    .adsr("3:5:0.6:4")
+    .room(0.9)
+    .delay("0.9:0.5")
+    .gain(0.3),
+
+  note("<48@2 55@3 ~ 62>")
+    .scale("C:lydian")
+    .sound("wt_flute")
+    .slow(8)
+    .vib("0.4:0.3")
+    .gain(0.2)
+)

@@ -1,0 +1,8 @@
+dist/
+logs/
+audio/
+__pycache__/
+.venv/
+.uv/
+vendor/
+*.pyc

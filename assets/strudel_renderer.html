@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Strudel Audio Renderer</title>
+  </head>
+  <body>
+    <script src="https://cdn.jsdelivr.net/npm/@strudel/web@1.2.5/dist/index.js"></script>
+    <script>
+      const ready = initStrudel({ miniAllStrings: true });
+      window.strudelReady = false;
+
+      const state = {
+        interceptInstalled: false,
+        recorderDest: null,
+        ctx: null,
+        samplesReady: null,
+      };
+
+      function ensureIntercept(ctx) {
+        if (state.interceptInstalled) return;
+        state.interceptInstalled = true;
+        const originalConnect = AudioNode.prototype.connect;
+        AudioNode.prototype.connect = function (...args) {
+          const destination = args[0];
+          try {
+            const isDestNode =
+              destination === ctx.destination ||
+              (typeof AudioDestinationNode !== 'undefined' && destination instanceof AudioDestinationNode);
+            if (destination && state.recorderDest && isDestNode) {
+              originalConnect.call(this, state.recorderDest);
+            }
+          } catch (error) {
+            console.warn('Recorder destination interception error', error);
+          }
+          return originalConnect.apply(this, args);
+        };
+      }
+
+      async function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      function normalizeCode(code) {
+        return code
+          .replace(/\.bank\([^)]*\)/g, '')
+          .replace(/RolandTR909/g, '909')
+          .replace(/RolandTR808/g, '808')
+          .replace(/RolandTR707/g, '808');
+      }
+
+      async function renderStrudel(code, options = {}) {
+        const { durationMs = 8000, warmupMs = 2500 } = options;
+        const repl = await ready;
+        const ctx = repl.audioContext ?? getAudioContext();
+        await ctx.resume();
+        state.ctx = ctx;
+        ensureIntercept(ctx);
+
+        if (!state.samplesReady) {
+          state.samplesReady = samples('github:tidalcycles/dirt-samples')
+            .then(() => {
+              try {
+                aliasBank({
+                  '909': 'RolandTR909',
+                  '808': ['RolandTR808', 'RolandTR707'],
+                });
+              } catch (aliasError) {
+                console.warn('Failed to alias drum banks', aliasError);
+              }
+            })
+            .catch((error) => {
+              console.warn('Failed to load samples', error);
+            });
+        }
+        await state.samplesReady;
+
+        const destination = ctx.createMediaStreamDestination();
+        state.recorderDest = destination;
+
+        hush();
+        await evaluate(normalizeCode(code), true);
+        await sleep(warmupMs);
+
+        const chunks = [];
+        const mediaOptions = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+          ? { mimeType: 'audio/webm;codecs=opus' }
+          : {};
+        const recorder = new MediaRecorder(destination.stream, mediaOptions);
+        recorder.addEventListener('dataavailable', (event) => {
+          if (event.data && event.data.size > 0) {
+            chunks.push(event.data);
+          }
+        });
+
+        const stopPromise = new Promise((resolve, reject) => {
+          recorder.addEventListener('stop', () => resolve());
+          recorder.addEventListener('error', (event) => reject(event.error));
+        });
+
+        // Start with a small timeslice to ensure immediate chunk production on Safari/WebKit
+        recorder.start(250);
+        await sleep(durationMs);
+        // Force a final dataavailable before stopping
+        try { recorder.requestData(); } catch (e) {}
+        recorder.stop();
+        await stopPromise;
+
+        state.recorderDest = null;
+        hush();
+
+        const blob = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
+        const base64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.addEventListener('loadend', () => {
+            const result = reader.result;
+            if (typeof result === 'string') {
+              const [, data] = result.split(',', 2);
+              resolve(data);
+            } else {
+              reject(new Error('Unexpected reader result'));
+            }
+          });
+          reader.addEventListener('error', () => reject(reader.error));
+          reader.readAsDataURL(blob);
+        });
+
+        return {
+          base64,
+          mimeType: recorder.mimeType || 'audio/webm',
+        };
+      }
+
+      window.renderStrudel = renderStrudel;
+      ready.then(() => {
+        window.strudelReady = true;
+      });
+    </script>
+  </body>
+</html>

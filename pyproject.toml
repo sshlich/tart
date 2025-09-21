@@ -1,0 +1,21 @@
+[project]
+name = "strudel-orchestrator"
+version = "0.1.0"
+description = "Agent-oriented Strudel live-coding compiler and CLI"
+readme = "README.md"
+authors = [
+    { name = "sshlich", email = "ivzholner@gmail.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "playwright>=1.55.0",
+    "pyyaml>=6.0.2",
+    "pytest>=8.3.2",
+]
+
+[project.scripts]
+strudel-orchestrator = "strudel_orchestrator:main"
+
+[build-system]
+requires = ["uv_build>=0.8.17,<0.9.0"]
+build-backend = "uv_build"

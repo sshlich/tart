@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Strudel Linter</title>
+  </head>
+  <body>
+    <script src="https://cdn.jsdelivr.net/npm/@strudel/web@1.2.5/dist/index.js"></script>
+    <script>
+      const ready = initStrudel({ miniAllStrings: true });
+      window.strudelReady = false;
+      const state = {
+        samplesReady: null,
+      };
+
+      function normalizeCode(code) {
+        return code
+          .replace(/\.bank\([^)]*\)/g, '')
+          .replace(/RolandTR909/g, '909')
+          .replace(/RolandTR808/g, '808')
+          .replace(/RolandTR707/g, '808');
+      }
+
+      async function lintStrudel(code) {
+        try {
+          await ready;
+          if (!state.samplesReady) {
+            state.samplesReady = samples('github:tidalcycles/dirt-samples')
+              .then(() => {
+                try {
+                  aliasBank({
+                    '909': 'RolandTR909',
+                    '808': ['RolandTR808', 'RolandTR707'],
+                  });
+                } catch (aliasError) {
+                  console.warn('Failed to alias drum banks', aliasError);
+                }
+              })
+              .catch((error) => {
+                console.warn('Failed to load samples', error);
+              });
+          }
+          await state.samplesReady;
+          await evaluate(normalizeCode(code), false);
+          return { ok: true };
+        } catch (error) {
+          return {
+            ok: false,
+            error: error && error.message ? error.message : String(error),
+          };
+        }
+      }
+
+      window.lintStrudel = lintStrudel;
+      ready.then(() => {
+        window.strudelReady = true;
+      });
+    </script>
+  </body>
+</html>

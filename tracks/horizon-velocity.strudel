@@ -1,0 +1,162 @@
+---
+slug: horizon-velocity
+title: "Horizon Velocity"
+tempo: 85
+mood: "cinematic drum-and-bass odyssey"
+tags: [dnb, high-energy, evolving, cinematic]
+summary: |
+  Four-minute narrative drum-and-bass track that opens with misty pads, ramps into syncopated drums,
+  peaks with a Reese-driven apex, and unspools into a half-time comedown.
+resources:
+  - STRUDEL-README.md#Composition-Patterns
+  - STRUDEL-LIBRARY.md#Drum-Machines--Percussion
+  - STRUDEL-LIBRARY.md#Synth-Engines
+---
+setcpm(85)
+
+const introLayers = stack(
+  sound("brown").gain(0.14).slow(6).lpf(1400).hpf(120),
+  sound("noise").gain(0.06).slow(5).lpf(3200).hpf(300),
+  n("<0 [7 ~] -5>").scale("F:minor")
+    .sound("triangle")
+    .slow(8)
+    .adsr("0.5:2.5:0.5:3.5")
+    .lpf(1500)
+    .hpf(180)
+    .gain(0.28)
+    .pan(sine.range(0.3, 0.7).slow(24))
+    .room(0.85),
+  note("f3 c4 <eb4 g4>").sound("gm_voice_oohs")
+    .slow(7)
+    .adsr("0.6:2.8:0.6:4.0")
+    .gain(0.22)
+    .room(0.92)
+    .delay("0.65:0.35")
+    .pan(0.45),
+  sound("hh*8").gain(0.05).degradeBy(0.75).slow(2).hpf(400)
+)
+
+const transitionLayers = stack(
+  introLayers.gain(0.6),
+  sound("bd(3,8)").bank("RolandTR909")
+    .fast(2)
+    .lpf(2000)
+    .hpf(90)
+    .gain(0.72),
+  sound("hh*16").bank("RolandTR909")
+    .fast(2)
+    .gain(sine.range(0.12, 0.22).slow(6))
+    .hpf(450)
+    .room(0.25),
+  sound("rim(5,16)").bank("RolandTR707")
+    .fast(2)
+    .gain(0.18)
+    .pan("0.3 0.7"),
+  n("<0 ~ 7>").scale("F:minor")
+    .sound("sawtooth")
+    .slow(4)
+    .adsr("0.2:1.0:0.4:1.6")
+    .lpf(900)
+    .hpf(120)
+    .gain(0.24)
+    .room(0.4)
+)
+
+const buildupLayers = stack(
+  transitionLayers.gain(0.75),
+  sound("sd(5,16)").bank("RolandTR909")
+    .fast(2)
+    .gain(0.32)
+    .room(0.35),
+  sound("hh*24").bank("RolandTR909")
+    .fast(3)
+    .gain(0.18)
+    .pan(sine.range(0.2, 0.8).fast(4))
+    .lpf(4200)
+    .hpf(650),
+  sound("oh(3,8)").bank("RolandTR909")
+    .fast(2)
+    .gain(0.22)
+    .hpf(600)
+    .room(0.4),
+  n("<0 0 [7 5]>").scale("F:minor")
+    .sound("square")
+    .slow(2)
+    .adsr("0.18:0.9:0.4:1.2")
+    .gain(0.28)
+    .lpf(sine.range(600, 1400).slow(8))
+    .pan(0.5),
+  sound("noise").gain(0.08).slow(3).hpf(500)
+)
+
+const apexLayers = stack(
+  buildupLayers.gain(0.85),
+  sound("bd sd [~ sd:2] hh:1 hh:3").bank("RolandTR909")
+    .fast(4)
+    .gain(0.6)
+    .clip(1.2)
+    .lpf(3600)
+    .hpf(120),
+  sound("hh*32").bank("RolandTR909")
+    .fast(4)
+    .gain(0.2)
+    .hpf(700)
+    .room(0.32),
+  sound("perc:4 perc:5").bank("AkaiLinn")
+    .fast(2)
+    .gain(0.18)
+    .pan("0.35 0.65"),
+  n("<0 0 7 5>").scale("F:minor")
+    .sound("sawtooth")
+    .fast(2)
+    .adsr("0.15:0.5:0.35:1.2")
+    .gain(0.26)
+    .lpf(800)
+    .hpf(120)
+    .room(0.35),
+  n("<0 0 -12>").scale("F:minor")
+    .sound("sine")
+    .fast(2)
+    .adsr("0.05:0.2:0.8:0.5")
+    .gain(0.32)
+    .lpf(240)
+    .pan(0.5),
+  sound("noise").gain(0.1).slow(2).hpf(550)
+)
+
+const slowdownLayers = stack(
+  introLayers.gain(0.5),
+  sound("bd(2,8)").bank("RolandTR707")
+    .fast(1.5)
+    .gain(0.42)
+    .hpf(80)
+    .lpf(1800)
+    .room(0.3),
+  sound("sd(3,8)").bank("RolandTR707")
+    .fast(1.5)
+    .gain(0.22)
+    .room(0.3),
+  sound("hh*12").bank("RolandTR707")
+    .fast(2)
+    .gain(0.12)
+    .hpf(500)
+    .room(0.25)
+    .degradeBy(0.3),
+  n("<0 [7 ~]>").scale("F:minor")
+    .sound("triangle")
+    .slow(3)
+    .adsr("0.4:1.8:0.5:2.5")
+    .gain(0.24)
+    .lpf(1200)
+    .hpf(200)
+    .pan(0.48),
+  sound("noise").gain(0.06).slow(4).hpf(420)
+)
+
+cat(
+  introLayers.slow(64),
+  transitionLayers.slow(42),
+  buildupLayers.slow(64),
+  apexLayers.slow(128),
+  slowdownLayers.slow(42)
+)

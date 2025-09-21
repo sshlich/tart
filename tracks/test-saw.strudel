@@ -1,0 +1,14 @@
+---
+slug: test-saw
+title: "Test Saw"
+tempo: 96
+mood: "test"
+tags: [test, synth]
+summary: |
+  Simple sawtooth synth for testing audio rendering.
+---
+setcpm(96)
+stack(
+  sound("sawtooth").gain(0.6),
+  note("c3 e3 g3 b3").sound("sine").slow(2)
+)
