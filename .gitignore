@@ -6,3 +6,7 @@ __pycache__/
 .uv/
 vendor/
 *.pyc
+.pytest_cache/
+.coverage
+coverage.xml
+.DS_Store
