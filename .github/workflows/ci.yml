@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install system deps (ffmpeg)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          # Install project in editable mode to expose CLI
+          pip install -e .
+          # Ensure Playwright and pytest are present
+          pip install playwright pytest
+
+      - name: Install Playwright browsers
+        run: |
+          python -m playwright install chromium
+
+      - name: Run unit tests
+        run: |
+          pytest -q
+
+      - name: Compile (check-only)
+        run: |
+          strudel-orchestrator compile --check-only
+
+      - name: Render smoke (WAV only)
+        run: |
+          strudel-orchestrator render --format wav --warmup 1 --duration 1 --slug test-saw
+          ls -la audio || true
+
