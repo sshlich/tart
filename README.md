@@ -8,7 +8,7 @@ Agent-oriented toolkit for authoring and compiling Strudel live-coding tracks. T
 ~/.local/bin/uv sync
 ~/.local/bin/uv run playwright install chromium  # one-time browser download
 ~/.local/bin/uv run strudel-orchestrator compile
-~/.local/bin/uv run strudel-orchestrator render --format wav,mp3 --warmup 4 --duration 8
+~/.local/bin/uv run strudel-orchestrator render --format wav --warmup 4 --duration 8
 ```
 
 Audio exports appear under `audio/` by default; compilation artifacts remain in `dist/`. The renderer currently normalises `.bank("RolandTR…")` calls to the core kit equivalents so every pattern has an audible fallback even if a specialised sample pack is unavailable.
@@ -64,7 +64,7 @@ Flags:
 - `--variants` (repeatable): list of appended Strudel expressions; an empty string renders the base track
 - `--slug` (repeatable): one or more track slugs to render
 - `--duration` / `--warmup`: seconds after/before capture
-- `--formats`: `wav,mp3` (webm is always captured; mp3/wav converted via ffmpeg)
+- `--formats`: `wav` (renderer cleans up intermediates; audio folder remains WAV-only)
 
 ### Splicing and looping (ffmpeg)
 

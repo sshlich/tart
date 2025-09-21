@@ -138,11 +138,12 @@ def render_tracks(options: RenderOptions, logger: Logger) -> int:
 
 def convert_formats(webm_path: Path, formats: Sequence[str], logger: Logger) -> None:
     available = {fmt.strip().lower() for fmt in formats}
+    # Always exclude webm from conversion target; we'll also remove the source after conversions
     if "webm" in available:
-        available.remove("webm")  # already produced
+        available.remove("webm")
 
     for fmt in available:
-        if fmt not in {"wav", "mp3"}:
+        if fmt not in {"wav"}:
             logger.warn("Unsupported audio format requested; skipping", {"format": fmt})
             continue
         output_path = webm_path.with_suffix(f".{fmt}")
@@ -166,6 +167,11 @@ def convert_formats(webm_path: Path, formats: Sequence[str], logger: Logger) -> 
                 {"command": command, "stderr": exc.stderr.decode(errors="ignore")},
             )
             raise
+    # Clean up the intermediate webm source to keep audio folder WAV-only
+    try:
+        webm_path.unlink(missing_ok=True)
+    except Exception:
+        pass
 
 
 __all__ = [

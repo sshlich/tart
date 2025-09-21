@@ -104,8 +104,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     render_parser.add_argument(
         "--format",
-        default="wav,mp3",
-        help="Comma-separated audio formats to emit (supports wav, mp3, webm).",
+        default="wav",
+        help="Comma-separated audio formats to emit (supports wav).",
     )
     render_parser.add_argument(
         "--duration",
@@ -155,7 +155,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     suite_parser.add_argument("--slug", action="append", default=[])
     suite_parser.add_argument("--warmup", type=float, default=4.0)
     suite_parser.add_argument("--duration", type=float, default=8.0)
-    suite_parser.add_argument("--formats", default="wav,mp3")
+    suite_parser.add_argument("--formats", default="wav")
     suite_parser.add_argument(
         "--variants",
         action="append",
