@@ -92,6 +92,23 @@ loop_audio(
 )
 ```
 
+CLI wrappers:
+
+```bash
+# Concatenate inputs into one file
+~/.local/bin/uv run strudel-orchestrator splice \
+  --inputs audio/neon-impulse/v00/neon-impulse.wav \
+  --inputs audio/neon-impulse/v01/neon-impulse.wav \
+  --inputs audio/neon-impulse/v02/neon-impulse.wav \
+  --out audio/neon-impulse/neon-impulse-suite.wav
+
+# Loop a section 4 times
+~/.local/bin/uv run strudel-orchestrator loop \
+  --input audio/neon-impulse/v02/neon-impulse.wav \
+  --repeats 4 \
+  --out audio/neon-impulse/neon-impulse-build.wav
+```
+
 Notes:
 
 - Requires `ffmpeg` in your `PATH`.

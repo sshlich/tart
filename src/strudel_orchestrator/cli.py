@@ -167,6 +167,30 @@ def main(argv: Sequence[str] | None = None) -> int:
         action="store_true",
         help="Move existing audio/ to audio_OLD/ before writing new renders.",
     )
+
+    splice_parser = subparsers.add_parser(
+        "splice",
+        help="Concatenate multiple audio files into one output using ffmpeg.",
+    )
+    splice_parser.add_argument(
+        "--inputs",
+        action="append",
+        required=True,
+        help="Input audio files in order (repeat this flag for each input).",
+    )
+    splice_parser.add_argument(
+        "--out",
+        required=True,
+        help="Output audio file path (extension determines format).",
+    )
+
+    loop_parser = subparsers.add_parser(
+        "loop",
+        help="Loop a single audio file N times using ffmpeg and write output.",
+    )
+    loop_parser.add_argument("--input", required=True, help="Input audio file to loop.")
+    loop_parser.add_argument("--repeats", type=int, required=True, help="Number of repeats (>=1).")
+    loop_parser.add_argument("--out", required=True, help="Output audio file path.")
     fetch_parser.add_argument(
         "--repo-url",
         default="https://codeberg.org/uzu/strudel.git",
@@ -207,6 +231,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _handle_fetch_strudel(args)
     if args.command == "render-suite":
         return _handle_render_suite(args)
+    if args.command == "splice":
+        return _handle_splice(args)
+    if args.command == "loop":
+        return _handle_loop(args)
 
     parser.print_help()
     return 0
@@ -351,6 +379,36 @@ def _handle_render_suite(args: argparse.Namespace) -> int:
             total += render_tracks(options, Logger(LoggerConfig(level="info", log_file=None)))
 
     print(f"Rendered {total} track variants into {out_dir}")
+    return 0
+
+
+def _handle_splice(args: argparse.Namespace) -> int:
+    logger = Logger(LoggerConfig(level="info", log_file=None))
+    inputs = [Path(p) for p in (args.inputs or [])]
+    output = Path(args.out)
+    if not inputs:
+        print("Error: at least one --inputs is required")
+        return 1
+    try:
+        concat_audio(inputs, output, logger)
+    except subprocess.CalledProcessError as exc:
+        print("Error: ffmpeg failed during concat")
+        return 1
+    print(f"Spliced {len(inputs)} files into {output}")
+    return 0
+
+
+def _handle_loop(args: argparse.Namespace) -> int:
+    logger = Logger(LoggerConfig(level="info", log_file=None))
+    input_path = Path(args.input)
+    output = Path(args.out)
+    repeats = int(args.repeats)
+    try:
+        loop_audio(input_path, repeats, output, logger)
+    except subprocess.CalledProcessError as exc:
+        print("Error: ffmpeg failed during loop")
+        return 1
+    print(f"Looped {input_path} x{repeats} into {output}")
     return 0
 
 
