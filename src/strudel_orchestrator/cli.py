@@ -16,6 +16,7 @@ from .orchestrator import (
     create_track_stub,
 )
 from .renderer import RenderOptions, render_tracks
+from .splicer import concat_audio, loop_audio
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -135,10 +136,36 @@ def main(argv: Sequence[str] | None = None) -> int:
         default=[],
         help="Render only specific track slugs (can be passed multiple times).",
     )
+    render_parser.add_argument(
+        "--play-expr",
+        default=None,
+        help="Append a Strudel expression after the track code (e.g., arrangement macro).",
+    )
 
     fetch_parser = subparsers.add_parser(
         "fetch-strudel",
         help="Shallow, sparse-clone the Strudel repo into vendor/ for local inspection.",
+    )
+    suite_parser = subparsers.add_parser(
+        "render-suite",
+        help="Render multiple variants for one or more tracks and rotate audio directories.",
+    )
+    suite_parser.add_argument("--tracks-dir", default="tracks")
+    suite_parser.add_argument("--out", default="audio")
+    suite_parser.add_argument("--slug", action="append", default=[])
+    suite_parser.add_argument("--warmup", type=float, default=4.0)
+    suite_parser.add_argument("--duration", type=float, default=8.0)
+    suite_parser.add_argument("--formats", default="wav,mp3")
+    suite_parser.add_argument(
+        "--variants",
+        action="append",
+        default=[""],
+        help="Strudel expressions to append for each variant (repeatable). Empty string means base track.",
+    )
+    suite_parser.add_argument(
+        "--rotate",
+        action="store_true",
+        help="Move existing audio/ to audio_OLD/ before writing new renders.",
     )
     fetch_parser.add_argument(
         "--repo-url",
@@ -178,6 +205,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _handle_render(args)
     if args.command == "fetch-strudel":
         return _handle_fetch_strudel(args)
+    if args.command == "render-suite":
+        return _handle_render_suite(args)
 
     parser.print_help()
     return 0
@@ -244,6 +273,7 @@ def _handle_render(args: argparse.Namespace) -> int:
         duration_ms=int(args.duration * 1000),
         warmup_ms=int(args.warmup * 1000),
         slugs=tuple(args.slug),
+        play_expr=args.play_expr,
     )
 
     try:
@@ -284,6 +314,43 @@ def _handle_fetch_strudel(args: argparse.Namespace) -> int:
         return 1
 
     print(f"Strudel repository fetched into {dest}")
+    return 0
+
+
+def _handle_render_suite(args: argparse.Namespace) -> int:
+    out_dir = Path(args.out)
+    if args.rotate and out_dir.exists():
+        old_dir = out_dir.with_name(out_dir.name + "_OLD")
+        if old_dir.exists():
+            import shutil
+            shutil.rmtree(old_dir)
+        out_dir.rename(old_dir)
+
+    formats = {
+        part.strip().lower()
+        for part in str(args.formats).split(",")
+        if part.strip()
+    }
+    if not formats:
+        formats = {"wav", "mp3"}
+
+    # For each variant, render into a subfolder like audio/<slug>/<variant_idx>/
+    total = 0
+    for slug in (args.slug or []):
+        for idx, play_expr in enumerate(args.variants or [""]):
+            variant_out = out_dir / slug / f"v{idx:02d}"
+            options = RenderOptions(
+                tracks_dir=Path(args.tracks_dir),
+                out_dir=variant_out,
+                formats=tuple(formats),
+                duration_ms=int(args.duration * 1000),
+                warmup_ms=int(args.warmup * 1000),
+                slugs=(slug,),
+                play_expr=play_expr or None,
+            )
+            total += render_tracks(options, Logger(LoggerConfig(level="info", log_file=None)))
+
+    print(f"Rendered {total} track variants into {out_dir}")
     return 0
 
 

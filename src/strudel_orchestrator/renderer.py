@@ -23,6 +23,7 @@ class RenderOptions:
     duration_ms: int
     warmup_ms: int
     slugs: Sequence[str]
+    play_expr: str | None = None
 
 
 class StrudelAudioRenderer:
@@ -119,7 +120,10 @@ def render_tracks(options: RenderOptions, logger: Logger) -> int:
                     "Rendering audio",
                     {"slug": artifact.slug, "duration_ms": options.duration_ms},
                 )
-                audio_bytes = await renderer.render(artifact.code or "", options.duration_ms, options.warmup_ms)
+                code_to_play = (artifact.code or "")
+                if options.play_expr:
+                    code_to_play = f"{code_to_play}\n{options.play_expr}\n"
+                audio_bytes = await renderer.render(code_to_play, options.duration_ms, options.warmup_ms)
                 webm_path = options.out_dir / f"{artifact.slug}.webm"
                 webm_path.write_bytes(audio_bytes)
 
